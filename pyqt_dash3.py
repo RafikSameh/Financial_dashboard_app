@@ -548,6 +548,7 @@ class CashFlowDashboard(QMainWindow):
         super().__init__()
         self.data_handler = None
         self.plot_handler = None
+        self.file_path = None
         self.init_ui()
         self.apply_theme()
     
@@ -879,7 +880,7 @@ class CashFlowDashboard(QMainWindow):
         
         if file_path:
             self.statusBar().showMessage("Loading data...")
-            
+            self.file_path = file_path
             # Create and start data loader thread
             self.data_loader = DataLoader(file_path)
             self.data_loader.data_loaded.connect(self.on_data_loaded)
@@ -1090,6 +1091,10 @@ class CashFlowDashboard(QMainWindow):
     def refresh_dashboard(self):
         """Refresh dashboard data"""
         if self.data_handler and self.plot_handler:
+            self.data_loader = DataLoader(self.file_path)
+            self.data_loader.data_loaded.connect(self.on_data_loaded)
+            self.data_loader.error_occurred.connect(self.on_error)
+            self.data_loader.start()
             self.update_dashboard()
             
             # Refresh the pie widget
