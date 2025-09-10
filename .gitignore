@@ -1,0 +1,33 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore environment folders
+.env/
+venv/
+.venv/
+*.conda-env
+
+# Ignore OS junk files
+.DS_Store
+Thumbs.db
+
+# Ignore build and distribution
+build/
+dist/
+*.spec
+
+# Ignore IDE/editor configs
+.vscode/
+.idea/
+
+# Ignore Excel or data files
+*.xlsx
+*.csv
+
+# Ignore logs
+*.log
+
+# Ignore exe
+*.exe
