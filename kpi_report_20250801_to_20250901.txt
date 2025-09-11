@@ -1,0 +1,69 @@
+CASH FLOW KPI INSIGHTS REPORT
+==================================================
+
+Period: 2025-08-01 to 2025-09-01
+Number of periods: 2
+
+Total Operating Cash Inflow:
+  Total: 94,765 SAR
+  Average per period: 47,382 SAR
+  Trend: +0.0%
+  Max: 94,765 SAR
+  Min: 0 SAR
+
+Total Cash outflow For KSA:
+  Total: -783,535 SAR
+  Average per period: -391,768 SAR
+  Trend: -671.5%
+  Max: -89,910 SAR
+  Min: -693,625 SAR
+
+Total Cash outflow For Egypt :
+  Total: -112,554 SAR
+  Average per period: -56,277 SAR
+  Trend: -539.7%
+  Max: -15,216 SAR
+  Min: -97,338 SAR
+
+Total Operating Cash Outflow:
+  Total: -896,089 SAR
+  Average per period: -448,044 SAR
+  Trend: -652.4%
+  Max: -105,126 SAR
+  Min: -790,963 SAR
+
+Total Investing Cash Outflow:
+  Total: -3,500 SAR
+  Average per period: -1,750 SAR
+  Trend: +0.0%
+  Max: 0 SAR
+  Min: -3,500 SAR
+
+Total Cash outflow from Financing :
+  Total: 470,984 SAR
+  Average per period: 235,492 SAR
+  Trend: -161.0%
+  Max: 1,206,303 SAR
+  Min: -735,319 SAR
+
+Total Change in cash:
+  Total: -333,840 SAR
+  Average per period: -166,920 SAR
+  Trend: -230.3%
+  Max: 1,101,177 SAR
+  Min: -1,435,017 SAR
+
+Cash Beginning Balance:
+  Total: 1,416,781 SAR
+  Average per period: 708,391 SAR
+  Trend: +697.8%
+  Max: 1,258,979 SAR
+  Min: 157,802 SAR
+
+Cash Ending Balance:
+  Total: 1,082,941 SAR
+  Average per period: 541,471 SAR
+  Trend: -114.0%
+  Max: 1,258,979 SAR
+  Min: -176,038 SAR
+

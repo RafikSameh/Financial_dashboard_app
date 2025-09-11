@@ -552,6 +552,7 @@ class CashFlowDashboard(QMainWindow):
         self.file_path = None
         self.init_ui()
         self.apply_theme()
+
     
     def init_ui(self):
         """Initialize the user interface"""
@@ -577,10 +578,10 @@ class CashFlowDashboard(QMainWindow):
     
         # Content widget inside scroll area
         content_widget = QWidget()
-        scroll_layout = QVBoxLayout(content_widget)
+        self.scroll_layout = QVBoxLayout(content_widget)
     
         # Add dashboard / charts / other content inside scroll_layout
-        self.create_content_area(scroll_layout)
+        self.create_content_area(self.scroll_layout)
     
         scroll_area.setWidget(content_widget)
     
@@ -675,42 +676,144 @@ class CashFlowDashboard(QMainWindow):
         layout.addWidget(self.tab_widget)
     
     def create_dashboard_tab(self):
-        """Create main dashboard tab"""
+        """Create main dashboard tab with KPIs at top and scrollable content"""
+        # Create scroll area for the entire dashboard
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        # Create the main content widget that will be scrollable
         dashboard_widget = QWidget()
-        dashboard_layout = QVBoxLayout()
-        
-        # KPIs section
+        dashboard_layout = QVBoxLayout(dashboard_widget)
+        dashboard_layout.setContentsMargins(15, 15, 15, 15)
+        dashboard_layout.setSpacing(20)
+
+        # KPI Section at the top - Fixed position
+        kpi_section = QFrame()
+        kpi_section.setFrameStyle(QFrame.Shape.Box)
+        kpi_section.setStyleSheet("""
+            QFrame {
+                background-color: #f8f9fa;
+                border: 2px solid #dee2e6;
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 10px;
+            }
+        """)
+
+        kpi_main_layout = QVBoxLayout(kpi_section)
+
+        # KPI Title
+        kpi_title = QLabel("Key Performance Indicators")
+        kpi_title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
+        kpi_title.setStyleSheet("color: #2E3440; margin-bottom: 15px;")
+        kpi_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        kpi_main_layout.addWidget(kpi_title)
+
+        # KPI Grid Layout
         self.kpi_frame = QFrame()
-        self.kpi_frame.setFrameStyle(QFrame.Shape.Box)
-        self.kpi_layout = QGridLayout()
-        self.kpi_frame.setLayout(self.kpi_layout)
-        dashboard_layout.addWidget(self.kpi_frame)
-        
-        # Charts section
-        charts_splitter = QSplitter(Qt.Orientation.Vertical)
-        
-        # Top row charts
-        top_charts_splitter = QSplitter(Qt.Orientation.Horizontal)
-        
+        self.kpi_layout = QGridLayout(self.kpi_frame)
+        self.kpi_layout.setSpacing(15)
+        kpi_main_layout.addWidget(self.kpi_frame)
+
+        # Add KPI section to main layout
+        dashboard_layout.addWidget(kpi_section)
+
+        # Charts Section Title
+        charts_title = QLabel("Financial Charts & Analysis")
+        charts_title.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        charts_title.setStyleSheet("color: #0066cc; padding: 10px 0;")
+        dashboard_layout.addWidget(charts_title)
+
+        # Charts section with better organization
+        charts_container = QFrame()
+        charts_container.setFrameStyle(QFrame.Shape.Box)
+        charts_container.setStyleSheet("""
+            QFrame {
+                background-color: white;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 15px;
+            }
+        """)
+        charts_layout = QVBoxLayout(charts_container)
+
+        # Top row charts (side by side)
+        top_charts_frame = QFrame()
+        top_charts_layout = QHBoxLayout(top_charts_frame)
+
+        # Waterfall Chart
+        waterfall_container = QFrame()
+        waterfall_container.setFrameStyle(QFrame.Shape.StyledPanel)
+        waterfall_container.setStyleSheet("border: 1px solid #ccc; border-radius: 5px;")
+        waterfall_layout = QVBoxLayout(waterfall_container)
+
+        waterfall_title = QLabel("Cash Movement Analysis")
+        waterfall_title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        waterfall_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        waterfall_title.setStyleSheet("padding: 8px; background-color: #e9ecef; border-radius: 3px;")
+
         self.waterfall_chart = ChartWidget()
+        self.waterfall_chart.setMinimumHeight(400)
+
+        waterfall_layout.addWidget(waterfall_title)
+        waterfall_layout.addWidget(self.waterfall_chart)
+
+        # Monthly Chart
+        monthly_container = QFrame()
+        monthly_container.setFrameStyle(QFrame.Shape.StyledPanel)
+        monthly_container.setStyleSheet("border: 1px solid #ccc; border-radius: 5px;")
+        monthly_layout = QVBoxLayout(monthly_container)
+
+        monthly_title = QLabel("Monthly Cash Flow Trend")
+        monthly_title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        monthly_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        monthly_title.setStyleSheet("padding: 8px; background-color: #e9ecef; border-radius: 3px;")
+
         self.monthly_chart = ChartWidget()
-        
-        top_charts_splitter.addWidget(self.waterfall_chart)
-        top_charts_splitter.addWidget(self.monthly_chart)
-        
-        # Bottom chart
+        self.monthly_chart.setMinimumHeight(400)
+
+        monthly_layout.addWidget(monthly_title)
+        monthly_layout.addWidget(self.monthly_chart)
+
+        # Add charts to top row
+        top_charts_layout.addWidget(waterfall_container)
+        top_charts_layout.addWidget(monthly_container)
+
+        # Operating Cash Flow Chart (full width)
+        operating_container = QFrame()
+        operating_container.setFrameStyle(QFrame.Shape.StyledPanel)
+        operating_container.setStyleSheet("border: 1px solid #ccc; border-radius: 5px; margin-top: 15px;")
+        operating_layout = QVBoxLayout(operating_container)
+
+        operating_title = QLabel("Operating Cash Flow Analysis")
+        operating_title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        operating_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        operating_title.setStyleSheet("padding: 8px; background-color: #e9ecef; border-radius: 3px;")
+
         self.operating_cash_chart = ChartWidget()
-        
-        charts_splitter.addWidget(top_charts_splitter)
-        charts_splitter.addWidget(self.operating_cash_chart)
-        charts_splitter.setStretchFactor(0, 1)
-        charts_splitter.setStretchFactor(1, 1)
-        
-        dashboard_layout.addWidget(charts_splitter)
-        
-        dashboard_widget.setLayout(dashboard_layout)
-        self.tab_widget.addTab(dashboard_widget, "Dashboard")
-    
+        self.operating_cash_chart.setMinimumHeight(500)
+
+        operating_layout.addWidget(operating_title)
+        operating_layout.addWidget(self.operating_cash_chart)
+
+        # Add all chart components to charts container
+        charts_layout.addWidget(top_charts_frame)
+        charts_layout.addWidget(operating_container)
+
+        # Add charts container to main layout
+        dashboard_layout.addWidget(charts_container)
+
+        # Add some bottom spacing
+        dashboard_layout.addStretch(0)
+
+        # Set the scrollable widget
+        scroll_area.setWidget(dashboard_widget)
+
+        # Add the scroll area to the tab
+        self.tab_widget.addTab(scroll_area, "Dashboard")
+
     def create_data_tabs(self):
         """Create data view tabs"""
         # Cash Flow Data tab
@@ -914,8 +1017,8 @@ class CashFlowDashboard(QMainWindow):
     def update_dashboard(self):
         """Update dashboard with real data"""
         if self.data_handler and self.plot_handler:
-            # Update KPIs
-            self.preview_kpi_insights_with_slider()
+            # Update KPIs first (they're now at the top)
+            self.update_kpis()
             
             # Update charts using your plot_diagrams class
             try:
@@ -928,496 +1031,347 @@ class CashFlowDashboard(QMainWindow):
                     
             except Exception as e:
                 self.statusBar().showMessage(f"Error updating charts: {str(e)}")
+                
+            # Remove the KPI insights from scroll_layout since KPIs are now at the top
+            if hasattr(self, "kpi_insights_widget") and self.kpi_insights_widget:
+                # This removes the complex KPI insights that were added to scroll_layout
+                if self.kpi_insights_widget.parent():
+                    self.kpi_insights_widget.parent().layout().removeWidget(self.kpi_insights_widget)
+                self.kpi_insights_widget.deleteLater()
+                self.kpi_insights_widget = None
     
-    """ def update_kpis(self):
-        Update KPI widgets with real data
+    def update_kpis(self):
+        """Update KPI widgets with real data - improved version"""
         # Clear existing KPIs
         for i in reversed(range(self.kpi_layout.count())):
             widget = self.kpi_layout.itemAt(i).widget()
             if widget:
                 widget.setParent(None)
-        
+
         if self.data_handler:
             try:
                 calc_dict = self.data_handler.calculations_dict
-                
+
+                # Define KPI data with better formatting
                 kpis = [
-                    ("Beginning Cash Balance", f"{calc_dict.get('Cash Beginning Balance', 0):,.0f} SAR"),
-                    ("Total Operating Inflow", f"{calc_dict.get('Total Operating Cash Inflow', 0):,.0f} SAR"),
-                    ("Total Operating Outflow", f"{calc_dict.get('Total Operating Cash Outflow', 0):,.0f} SAR"),
-                    ("Ending Cash Balance", f"{calc_dict.get('Cash Ending Balance', 0):,.0f} SAR")
+                    {
+                        "title": "Beginning Cash Balance", 
+                        "value": f"{calc_dict.get('Cash Beginning Balance', 0):,.0f} SAR",
+                        "icon": "💰",
+                        "color": "#17a2b8"
+                    },
+                    {
+                        "title": "Total Operating Inflow", 
+                        "value": f"{calc_dict.get('Total Operating Cash Inflow', 0):,.0f} SAR",
+                        "icon": "📈", 
+                        "color": "#28a745"
+                    },
+                    {
+                        "title": "Total Operating Outflow", 
+                        "value": f"{calc_dict.get('Total Operating Cash Outflow', 0):,.0f} SAR",
+                        "icon": "📉",
+                        "color": "#dc3545"
+                    },
+                    {
+                        "title": "Net Cash Flow", 
+                        "value": f"{calc_dict.get('Total Operating Cash Inflow', 0) - calc_dict.get('Total Operating Cash Outflow', 0):,.0f} SAR",
+                        "icon": "⚖️",
+                        "color": "#6f42c1"
+                    },
+                    {
+                        "title": "Ending Cash Balance", 
+                        "value": f"{calc_dict.get('Cash Ending Balance', 0):,.0f} SAR",
+                        "icon": "🏦",
+                        "color": "#fd7e14"
+                    }
                 ]
-                
-                for i, (title, value) in enumerate(kpis):
-                    kpi_widget = KPIWidget(title, value)
-                    self.kpi_layout.addWidget(kpi_widget, 0, i)
-                    
+
+                # Create enhanced KPI widgets
+                for i, kpi in enumerate(kpis):
+                    kpi_widget = self.create_enhanced_kpi_widget(
+                        kpi["title"], 
+                        kpi["value"], 
+                        kpi["icon"], 
+                        kpi["color"]
+                    )
+
+                    # Arrange in 2 rows if more than 3 KPIs
+                    row = i // 3
+                    col = i % 3
+                    self.kpi_layout.addWidget(kpi_widget, row, col)
+
             except Exception as e:
-                error_kpi = KPIWidget("Error", f"Failed to load KPIs: {str(e)}")
-                self.kpi_layout.addWidget(error_kpi, 0, 0) """
+                error_kpi = self.create_enhanced_kpi_widget(
+                    "Error", 
+                    f"Failed to load KPIs: {str(e)[:50]}...", 
+                    "⚠️", 
+                    "#dc3545"
+                )
+                self.kpi_layout.addWidget(error_kpi, 0, 0)
+
+
+    def create_enhanced_kpi_widget(self, title, value, icon, color):
+        """Create enhanced KPI widget with better styling"""
+        kpi_widget = QFrame()
+        kpi_widget.setFrameStyle(QFrame.Shape.Box)
+        kpi_widget.setStyleSheet(f"""
+            QFrame {{
+                background-color: white;
+                border: 2px solid {color};
+                border-radius: 10px;
+                padding: 15px;
+                margin: 5px;
+                min-height: 100px;
+                max-height: 120px;
+            }}
+            QFrame:hover {{
+                background-color: #f8f9fa;
+                border-color: {color};
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }}
+        """)
+
+        layout = QVBoxLayout(kpi_widget)
+        layout.setSpacing(5)
+
+        # Icon and Title row
+        header_layout = QHBoxLayout()
+
+        icon_label = QLabel(icon)
+        icon_label.setFont(QFont("Arial", 20))
+        icon_label.setFixedSize(30, 30)
+        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        title_label = QLabel(title)
+        title_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        title_label.setStyleSheet(f"color: {color}; font-weight: bold;")
+        title_label.setWordWrap(True)
+
+        header_layout.addWidget(icon_label)
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+
+        # Value
+        value_label = QLabel(value)
+        value_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        value_label.setStyleSheet("color: #212529;")
+        value_label.setWordWrap(True)
+        value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        layout.addLayout(header_layout)
+        layout.addWidget(value_label)
+        layout.addStretch()
+
+        return kpi_widget
+
+    def create_enhanced_kpi_widget_with_trend(self, title, value, trend, icon, color):
+        """Create enhanced KPI widget with trend indicator"""
+        kpi_widget = QFrame()
+        kpi_widget.setFrameStyle(QFrame.Shape.Box)
+        kpi_widget.setStyleSheet(f"""
+            QFrame {{
+                background-color: white;
+                border: 2px solid {color};
+                border-radius: 10px;
+                padding: 15px;
+                margin: 5px;
+                min-height: 110px;
+                max-height: 130px;
+            }}
+            QFrame:hover {{
+                background-color: #f8f9fa;
+                border-color: {color};
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }}
+        """)
+
+        layout = QVBoxLayout(kpi_widget)
+        layout.setSpacing(3)
+
+        # Icon and Title row
+        header_layout = QHBoxLayout()
+
+        icon_label = QLabel(icon)
+        icon_label.setFont(QFont("Arial", 18))
+        icon_label.setFixedSize(25, 25)
+        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        title_label = QLabel(title)
+        title_label.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+        title_label.setStyleSheet(f"color: {color}; font-weight: bold;")
+        title_label.setWordWrap(True)
+
+        header_layout.addWidget(icon_label)
+        header_layout.addWidget(title_label)
+        header_layout.addStretch()
+
+        # Value
+        value_label = QLabel(value)
+        value_label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        value_label.setStyleSheet("color: #212529;")
+        value_label.setWordWrap(True)
+        value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Trend (if provided)
+        if trend and trend.strip():
+            trend_label = QLabel(trend)
+            trend_label.setFont(QFont("Arial", 10))
+            trend_value = float(trend.replace('%', '').replace('+', ''))
+            if trend_value > 0:
+                trend_label.setStyleSheet("color: #28a745; font-weight: bold;")
+                trend_text = f"↑ {trend}"
+            elif trend_value < 0:
+                trend_label.setStyleSheet("color: #dc3545; font-weight: bold;")
+                trend_text = f"↓ {trend}"
+            else:
+                trend_label.setStyleSheet("color: #6c757d;")
+                trend_text = f"→ {trend}"
+
+            trend_label.setText(trend_text)
+            trend_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            layout.addLayout(header_layout)
+            layout.addWidget(value_label)
+            layout.addWidget(trend_label)
+        else:
+            layout.addLayout(header_layout)
+            layout.addWidget(value_label)
+            layout.addStretch()
+
+        return kpi_widget
+
+
     def preview_kpi_insights_with_slider(self):
-        """Preview KPI insights from totals dataframe with time period slider using KPIWidgets"""
+        """Show KPI Insights inside the dashboard content area (scrollable)"""
 
         if not self.data_handler or not hasattr(self.data_handler, 'totals') or self.data_handler.totals is None:
             QMessageBox.warning(self, "Warning", "No totals data available for KPI insights!")
             return
 
         try:
-            # Get the totals dataframe
             df = self.data_handler.totals.copy()
-            
-            print(f"DataFrame shape: {df.shape}")
-            print(f"DataFrame columns: {list(df.columns)}")
-            
-            # More flexible approach to identify non-date columns
-            # Check for common metadata column patterns
-            non_date_cols = []
-            for col in df.columns:
-                col_lower = str(col).lower()
-                if any(keyword in col_lower for keyword in ['country', 'cash flow', 'category', 'item', 'type']):
-                    non_date_cols.append(col)
-            
-            # If no metadata columns found, try the original list
+
+            # --- Identify date columns ---
+            non_date_cols = [c for c in df.columns if any(k in str(c).lower()
+                              for k in ['country', 'cash flow', 'category', 'item', 'type'])]
             if not non_date_cols:
                 non_date_cols = ['Country', 'Cash Flow Type', 'Category', 'Item']
-            
-            print(f"Identified non-date columns: {non_date_cols}")
-            
-            # Get potential date columns
-            date_columns = [col for col in df.columns if col not in non_date_cols]
-            print(f"Potential date columns: {date_columns}")
-            
-            # Convert date column names to datetime objects for slider
-            date_objects = []
-            successful_cols = []
-            
+            date_columns = [c for c in df.columns if c not in non_date_cols]
+
+            # Parse dates
+            date_objects, successful_cols = [], []
             for col in date_columns:
                 try:
-                    col_str = str(col)
-                    print(f"Processing column: '{col_str}'")
-                    
-                    # Try different date parsing strategies
-                    date_obj = None
-                    
-                    # Strategy 1: Split by space and take first part
-                    if ' ' in col_str:
-                        date_str = col_str.split(' ')[0]
-                        try:
-                            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-                        except ValueError:
-                            pass
-                        
-                    # Strategy 2: Try parsing the whole string as date
-                    if date_obj is None:
-                        try:
-                            date_obj = pd.to_datetime(col_str).to_pydatetime()
-                        except:
-                            pass
-                        
-                    # Strategy 3: Try common date formats
-                    if date_obj is None:
-                        date_formats = ['%Y-%m-%d', '%Y/%m/%d', '%m/%d/%Y', '%d/%m/%Y', '%Y-%m', '%Y%m%d']
-                        for fmt in date_formats:
-                            try:
-                                date_obj = datetime.strptime(col_str, fmt)
-                                break
-                            except ValueError:
-                                continue
-                            
-                    # Strategy 4: Extract date pattern using regex
-                    if date_obj is None:
-                        import re
-                        # Look for YYYY-MM-DD pattern
-                        date_match = re.search(r'(\d{4})-(\d{2})-(\d{2})', col_str)
-                        if date_match:
-                            try:
-                                date_obj = datetime(int(date_match.group(1)), 
-                                                  int(date_match.group(2)), 
-                                                  int(date_match.group(3)))
-                            except ValueError:
-                                pass
-                            
-                    if date_obj:
-                        date_objects.append(date_obj)
+                    date_obj = pd.to_datetime(str(col), errors="coerce")
+                    if pd.notna(date_obj):
+                        date_objects.append(date_obj.to_pydatetime())
                         successful_cols.append(col)
-                        print(f"Successfully parsed: '{col_str}' -> {date_obj}")
-                    else:
-                        print(f"Failed to parse: '{col_str}'")
-                        
-                except Exception as e:
-                    print(f"Error processing column '{col}': {e}")
-                    continue
-                
-            # Update date_columns to only include successfully parsed ones
+                except Exception:
+                    pass
             date_columns = successful_cols
-            
-            print(f"Successfully parsed {len(date_objects)} date columns")
-            print(f"Date range: {min(date_objects) if date_objects else 'None'} to {max(date_objects) if date_objects else 'None'}")
-            
             if not date_objects:
-                # Show more detailed error message
-                error_msg = f"No valid date columns found!\n\nDataFrame Info:\n"
-                error_msg += f"Shape: {df.shape}\n"
-                error_msg += f"Columns: {list(df.columns)}\n\n"
-                error_msg += "Please check that your data contains date columns in a recognizable format."
-                
-                QMessageBox.warning(self, "Warning", error_msg)
+                QMessageBox.warning(self, "Warning", "No valid date columns found in DataFrame!")
                 return
-        
-
-            # Sort dates
             date_objects.sort()
 
-            # Create the KPI insights window
-            self.kpi_insights_window = QDialog(self)
-            self.kpi_insights_window.setWindowTitle("KPI Insights - Time Period Selector")
-            self.kpi_insights_window.resize(1200, 700)
+            # --- Remove old KPI widget if exists ---
+            if hasattr(self, "kpi_insights_widget") and self.kpi_insights_widget:
+                self.scroll_layout.removeWidget(self.kpi_insights_widget)
+                self.kpi_insights_widget.deleteLater()
 
-            main_layout = QVBoxLayout(self.kpi_insights_window)
+            # --- Create KPI Insights widget ---
+            self.kpi_insights_widget = QWidget()
+            layout = QVBoxLayout(self.kpi_insights_widget)
 
             # Title
             title_label = QLabel("Cash Flow KPI Insights")
-            title_label.setStyleSheet("""
-                QLabel {
-                    font-size: 18px;
-                    font-weight: bold;
-                    color: #2E86AB;
-                    margin: 10px;
-                    padding: 10px;
-                }
-            """)
+            title_label.setStyleSheet("font-size:18px;font-weight:bold;color:#2E86AB;")
             title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            main_layout.addWidget(title_label)
+            layout.addWidget(title_label)
 
-            # Time period controls
-            controls_widget = QWidget()
-            controls_layout = QGridLayout(controls_widget)
-            controls_widget.setStyleSheet("""
-                QWidget {
-                    background-color: #f8f9fa;
-                    border-radius: 8px;
-                    margin: 5px;
-                    padding: 10px;
-                }
-            """)
+            # RangeSlider
+            self.range_slider = RangeSlider(0, len(date_objects)-1)
+            self.range_slider.setValue(0, len(date_objects)-1)
+            self.range_label = QLabel(
+                f"{date_objects[0].strftime('%Y-%m-%d')} → {date_objects[-1].strftime('%Y-%m-%d')}")
+            self.range_label.setStyleSheet("background:#e3f2fd;padding:6px;border-radius:3px;")
 
-            # Start date slider
-            start_label = QLabel("Start Period:")
-            start_label.setStyleSheet("font-weight: bold; font-size: 12px;")
-            self.kpi_start_slider = QSlider(Qt.Orientation.Horizontal)
-            self.kpi_start_slider.setMinimum(0)
-            self.kpi_start_slider.setMaximum(len(date_objects) - 1)
-            self.kpi_start_slider.setValue(0)
-            self.kpi_start_label = QLabel(date_objects[0].strftime('%Y-%m-%d'))
-            self.kpi_start_label.setStyleSheet("background-color: #e3f2fd; padding: 5px; border-radius: 3px; font-size: 11px;")
+            slider_box = QVBoxLayout()
+            slider_box.addWidget(self.range_label)
+            slider_box.addWidget(self.range_slider)
+            layout.addLayout(slider_box)
 
-            # End date slider
-            end_label = QLabel("End Period:")
-            end_label.setStyleSheet("font-weight: bold; font-size: 12px;")
-            self.kpi_end_slider = QSlider(Qt.Orientation.Horizontal)
-            self.kpi_end_slider.setMinimum(0)
-            self.kpi_end_slider.setMaximum(len(date_objects) - 1)
-            self.kpi_end_slider.setValue(len(date_objects) - 1)
-            self.kpi_end_label = QLabel(date_objects[-1].strftime('%Y-%m-%d'))
-            self.kpi_end_label.setStyleSheet("background-color: #e3f2fd; padding: 5px; border-radius: 3px; font-size: 11px;")
-
-            # Layout controls
-            controls_layout.addWidget(start_label, 0, 0)
-            controls_layout.addWidget(self.kpi_start_label, 0, 1)
-            controls_layout.addWidget(self.kpi_start_slider, 0, 2, 1, 3)
-            controls_layout.addWidget(end_label, 1, 0)
-            controls_layout.addWidget(self.kpi_end_label, 1, 1)
-            controls_layout.addWidget(self.kpi_end_slider, 1, 2, 1, 3)
-
-            main_layout.addWidget(controls_widget)
-
-            # KPI Display Area
-            scroll_area = QScrollArea()
-            scroll_widget = QWidget()
-            scroll_layout = QVBoxLayout(scroll_widget)
-
-            # Primary KPIs Section
-            primary_kpi_label = QLabel("Primary Cash Flow KPIs")
-            primary_kpi_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #1976d2; margin: 10px 0px;")
-            scroll_layout.addWidget(primary_kpi_label)
-
+            # KPI sections
             self.primary_kpi_layout = QGridLayout()
-            primary_kpi_widget = QWidget()
-            primary_kpi_widget.setLayout(self.primary_kpi_layout)
-            scroll_layout.addWidget(primary_kpi_widget)
-
-            # Secondary KPIs Section
-            secondary_kpi_label = QLabel("Period Analysis & Trends")
-            secondary_kpi_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #388e3c; margin: 10px 0px;")
-            scroll_layout.addWidget(secondary_kpi_label)
-
             self.secondary_kpi_layout = QGridLayout()
-            secondary_kpi_widget = QWidget()
-            secondary_kpi_widget.setLayout(self.secondary_kpi_layout)
-            scroll_layout.addWidget(secondary_kpi_widget)
-
-            # Performance KPIs Section
-            performance_kpi_label = QLabel("Performance Indicators")
-            performance_kpi_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #f57c00; margin: 10px 0px;")
-            scroll_layout.addWidget(performance_kpi_label)
-
             self.performance_kpi_layout = QGridLayout()
-            performance_kpi_widget = QWidget()
-            performance_kpi_widget.setLayout(self.performance_kpi_layout)
-            scroll_layout.addWidget(performance_kpi_widget)
 
-            scroll_area.setWidget(scroll_widget)
-            scroll_area.setWidgetResizable(True)
-            main_layout.addWidget(scroll_area)
+            layout.addWidget(QLabel("Primary KPIs"))
+            layout.addLayout(self.primary_kpi_layout)
+            layout.addWidget(QLabel("Secondary KPIs"))
+            layout.addLayout(self.secondary_kpi_layout)
+            layout.addWidget(QLabel("Performance Indicators"))
+            layout.addLayout(self.performance_kpi_layout)
 
-            # Store references for updates
-            self.kpi_df = df
-            self.kpi_date_columns = date_columns
-            self.kpi_date_objects = date_objects
-            self.kpi_non_date_cols = non_date_cols
+            # Add to dashboard scrollable layout
+            self.scroll_layout.addWidget(self.kpi_insights_widget)
 
-            # Update function
-            def update_kpi_insights():
-                try:
-                    start_idx = self.kpi_start_slider.value()
-                    end_idx = self.kpi_end_slider.value()
+            # --- Update logic ---
+            def update_kpi_insights(values):
+                start_idx, end_idx = values
+                self.range_label.setText(
+                    f"{date_objects[start_idx].strftime('%Y-%m-%d')} → {date_objects[end_idx].strftime('%Y-%m-%d')}"
+                )
+                selected_date_cols = date_columns[start_idx:end_idx+1]
+                selected_dates = date_objects[start_idx:end_idx+1]
 
-                    # Ensure start <= end
-                    if start_idx > end_idx:
-                        if self.kpi_start_slider == self.sender():
-                            end_idx = start_idx
-                            self.kpi_end_slider.setValue(start_idx)
-                        else:
-                            start_idx = end_idx
-                            self.kpi_start_slider.setValue(end_idx)
-
-                    # Update date labels
-                    self.kpi_start_label.setText(date_objects[start_idx].strftime('%Y-%m-%d'))
-                    self.kpi_end_label.setText(date_objects[end_idx].strftime('%Y-%m-%d'))
-
-                    # Get selected date range
-                    selected_date_cols = date_columns[start_idx:end_idx + 1]
-                    selected_dates = date_objects[start_idx:end_idx + 1]
-
-                    # Calculate KPIs from selected period
-                    kpi_insights = calculate_period_kpis(df, selected_date_cols, selected_dates)
-
-                    # Update all KPI widgets
-                    update_all_kpi_widgets(kpi_insights, len(selected_date_cols))
-
-                except Exception as e:
-                    QMessageBox.critical(self.kpi_insights_window, "Error", f"Failed to update KPIs: {str(e)}")
+                kpi_insights = calculate_period_kpis(df, selected_date_cols, selected_dates)
+                update_all_kpi_widgets(kpi_insights, len(selected_date_cols))
 
             def calculate_period_kpis(df, selected_cols, selected_dates):
-                """Calculate KPIs for the selected time period"""
                 kpis = {}
-
                 for _, row in df.iterrows():
-                    item_name = row.get('Item', 'Unknown')
-                    if pd.notna(item_name):
-                        # Get values for selected period
-                        period_values = []
-                        for col in selected_cols:
-                            try:
-                                val = pd.to_numeric(row[col], errors='coerce')
-                                period_values.append(val if pd.notna(val) else 0)
-                            except:
-                                period_values.append(0)
-
-                        # Calculate metrics
-                        total = sum(period_values)
-                        avg_per_period = total / len(period_values) if period_values else 0
-                        max_value = max(period_values) if period_values else 0
-                        min_value = min(period_values) if period_values else 0
-
-                        # Trend calculation
-                        if len(period_values) >= 2:
-                            trend_change = period_values[-1] - period_values[0]
-                            trend_pct = (trend_change / abs(period_values[0]) * 100) if period_values[0] != 0 else 0
-                        else:
-                            trend_change = 0
-                            trend_pct = 0
-
-                        kpis[item_name] = {
-                            'total': total,
-                            'average': avg_per_period,
-                            'max': max_value,
-                            'min': min_value,
-                            'trend_change': trend_change,
-                            'trend_pct': trend_pct,
-                            'latest': period_values[-1] if period_values else 0,
-                            'first': period_values[0] if period_values else 0
+                    item = row.get("Item", "Unknown")
+                    vals = pd.to_numeric(row[selected_cols], errors="coerce").fillna(0).tolist()
+                    if vals:
+                        total = sum(vals)
+                        kpis[item] = {
+                            "total": total,
+                            "average": total/len(vals),
+                            "trend_pct": ((vals[-1]-vals[0])/vals[0]*100 if vals[0] else 0),
                         }
-
                 return kpis
 
             def clear_layout(layout):
-                """Clear all widgets from a layout"""
                 for i in reversed(range(layout.count())):
-                    widget = layout.itemAt(i).widget()
-                    if widget:
-                        widget.setParent(None)
+                    w = layout.itemAt(i).widget()
+                    if w:
+                        w.setParent(None)
 
             def update_all_kpi_widgets(kpi_insights, num_periods):
-                """Update all KPI widget sections"""
-
-                # Clear existing widgets
                 clear_layout(self.primary_kpi_layout)
                 clear_layout(self.secondary_kpi_layout)
                 clear_layout(self.performance_kpi_layout)
 
-                # PRIMARY KPIs - Core Cash Flow Metrics
-                primary_kpis = []
+                inflow = sum(v["total"] for k,v in kpi_insights.items() if "Inflow" in k)
+                outflow = sum(abs(v["total"]) for k,v in kpi_insights.items() if "Outflow" in k)
+                net = inflow - outflow
 
-                # Find key cash flow items
-                for item_name, metrics in kpi_insights.items():
-                    if 'Inflow' in item_name:
-                        primary_kpis.append((f"Total {item_name}", f"{metrics['total']:,.0f} SAR"))
-                    elif 'Outflow' in item_name:
-                        primary_kpis.append((f"Total {item_name}", f"{abs(metrics['total']):,.0f} SAR"))
+                self.primary_kpi_layout.addWidget(QLabel(f"Net Cash Flow: {net:,.0f}"), 0, 0)
+                self.secondary_kpi_layout.addWidget(QLabel(f"Periods: {num_periods}"), 0, 0)
 
-                # Calculate net cash flow
-                total_inflow = sum([m['total'] for name, m in kpi_insights.items() if 'Inflow' in name and m['total'] > 0])
-                total_outflow = sum([abs(m['total']) for name, m in kpi_insights.items() if 'Outflow' in name and m['total'] < 0])
-                net_cash_flow = total_inflow - total_outflow
+                for i,(item,metrics) in enumerate(kpi_insights.items()):
+                    self.performance_kpi_layout.addWidget(QLabel(f"{item}: {metrics['trend_pct']:+.1f}%"), i//3, i%3)
 
-                primary_kpis.extend([
-                    ("Net Cash Flow", f"{net_cash_flow:,.0f} SAR"),
-                    ("Cash Flow Ratio", f"{(total_inflow / total_outflow * 100):,.1f}%" if total_outflow > 0 else "N/A")
-                ])
-
-                # Add primary KPI widgets
-                for i, (title, value) in enumerate(primary_kpis):
-                    kpi_widget = KPIWidget(title, value)
-                    row = i // 3
-                    col = i % 3
-                    self.primary_kpi_layout.addWidget(kpi_widget, row, col)
-
-                # SECONDARY KPIs - Period Analysis
-                secondary_kpis = [
-                    ("Analysis Period", f"{num_periods} months"),
-                    ("Period Range", f"{self.kpi_start_label.text()} to {self.kpi_end_label.text()}"),
-                    ("Average Monthly Inflow", f"{total_inflow / num_periods:,.0f} SAR" if num_periods > 0 else "0 SAR"),
-                    ("Average Monthly Outflow", f"{total_outflow / num_periods:,.0f} SAR" if num_periods > 0 else "0 SAR")
-                ]
-
-                # Add highest and lowest performing items
-                if kpi_insights:
-                    best_item = max(kpi_insights.keys(), key=lambda x: kpi_insights[x]['total'])
-                    worst_item = min(kpi_insights.keys(), key=lambda x: kpi_insights[x]['total'])
-
-                    secondary_kpis.extend([
-                        ("Highest Contributor", f"{best_item}"),
-                        ("Needs Attention", f"{worst_item}")
-                    ])
-
-                # Add secondary KPI widgets
-                for i, (title, value) in enumerate(secondary_kpis):
-                    kpi_widget = KPIWidget(title, value)
-                    row = i // 3
-                    col = i % 3
-                    self.secondary_kpi_layout.addWidget(kpi_widget, row, col)
-
-                # PERFORMANCE KPIs - Trends and Growth
-                performance_kpis = []
-
-                for item_name, metrics in kpi_insights.items():
-                    if abs(metrics['total']) > 0:  # Only show items with activity
-                        trend_icon = "📈" if metrics['trend_change'] > 0 else "📉" if metrics['trend_change'] < 0 else "➡️"
-                        performance_kpis.append((
-                            f"{trend_icon} {item_name[:20]}...", 
-                            f"{metrics['trend_pct']:+.1f}%"
-                        ))
-
-                # Add performance indicators
-                growth_items = [(name, m['trend_pct']) for name, m in kpi_insights.items() if m['trend_pct'] != 0]
-                if growth_items:
-                    growing = [item for item, growth in growth_items if growth > 0]
-                    declining = [item for item, growth in growth_items if growth < 0]
-
-                    performance_kpis.extend([
-                        ("Growing Items", f"{len(growing)} items"),
-                        ("Declining Items", f"{len(declining)} items"),
-                        ("Stable Items", f"{len(kpi_insights) - len(growth_items)} items")
-                    ])
-
-                # Add performance KPI widgets
-                for i, (title, value) in enumerate(performance_kpis[:9]):  # Limit to 9 widgets
-                    kpi_widget = KPIWidget(title, value)
-                    row = i // 3
-                    col = i % 3
-                    self.performance_kpi_layout.addWidget(kpi_widget, row, col)
-
-            # Connect sliders to update function
-            self.kpi_start_slider.valueChanged.connect(update_kpi_insights)
-            self.kpi_end_slider.valueChanged.connect(update_kpi_insights)
-
-            # Add export button
-            export_btn = QPushButton("Export KPI Report")
-            export_btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 5px;
-                    font-weight: bold;
-                    margin: 10px;
-                }
-                QPushButton:hover {
-                    background-color: #45a049;
-                }
-            """)
-            export_btn.clicked.connect(lambda: export_kpi_report())
-            main_layout.addWidget(export_btn)
-
-            def export_kpi_report():
-                """Export current KPI insights to text file"""
-                try:
-                    start_idx = self.kpi_start_slider.value()
-                    end_idx = self.kpi_end_slider.value()
-                    selected_date_cols = date_columns[start_idx:end_idx + 1]
-                    selected_dates = date_objects[start_idx:end_idx + 1]
-
-                    kpi_insights = calculate_period_kpis(df, selected_date_cols, selected_dates)
-
-                    filename, _ = QFileDialog.getSaveFileName(
-                        self.kpi_insights_window,
-                        "Export KPI Report",
-                        f"kpi_report_{selected_dates[0].strftime('%Y%m%d')}_to_{selected_dates[-1].strftime('%Y%m%d')}.txt",
-                        "Text Files (*.txt);;CSV Files (*.csv)"
-                    )
-
-                    if filename:
-                        with open(filename, 'w') as f:
-                            f.write("CASH FLOW KPI INSIGHTS REPORT\n")
-                            f.write("=" * 50 + "\n\n")
-                            f.write(f"Period: {selected_dates[0].strftime('%Y-%m-%d')} to {selected_dates[-1].strftime('%Y-%m-%d')}\n")
-                            f.write(f"Number of periods: {len(selected_date_cols)}\n\n")
-
-                            for item_name, metrics in kpi_insights.items():
-                                f.write(f"{item_name}:\n")
-                                f.write(f"  Total: {metrics['total']:,.0f} SAR\n")
-                                f.write(f"  Average per period: {metrics['average']:,.0f} SAR\n")
-                                f.write(f"  Trend: {metrics['trend_pct']:+.1f}%\n")
-                                f.write(f"  Max: {metrics['max']:,.0f} SAR\n")
-                                f.write(f"  Min: {metrics['min']:,.0f} SAR\n\n")
-
-                        QMessageBox.information(self.kpi_insights_window, "Success", f"KPI report exported to {filename}")
-
-                except Exception as e:
-                    QMessageBox.critical(self.kpi_insights_window, "Error", f"Export failed: {str(e)}")
+            # Connect slider
+            self.range_slider.valueChanged.connect(update_kpi_insights)
 
             # Initial update
-            update_kpi_insights()
+            update_kpi_insights(self.range_slider.value())
 
-            # Show the insights window
-            self.kpi_insights_window.exec()
-        
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to create KPI insights: {str(e)}")
 
-    
     def create_operating_inflow_pie(self):
         """
         PyQt compatible version of create_operating_inflow_pie for the CashFlowDashboard class.

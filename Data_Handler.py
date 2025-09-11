@@ -35,7 +35,7 @@ class Data_Handler:
         totals = CashFlow[CashFlow['Item'].str.startswith("Total") == True]
         calculations_dict = {}
         calculations_dict['Cash Beginning Balance'] = cash_beginning_balance
-
+        totals = pd.concat([totals,CashFlow[CashFlow['Item'].str.startswith("Cash Beginning Balance") == True],CashFlow[CashFlow['Item'].str.startswith("Cash Ending Balance") == True]])
         for i in range(len(totals)):
             calculations_dict[totals['Item'].iloc[i]] = totals.iloc[i, 4:].apply(pd.to_numeric, errors='coerce').sum()
         calculations_dict.pop('Total Operating Cash Outflow', None)
