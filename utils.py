@@ -226,8 +226,8 @@ class plot_diagrams(Data_Handler):
                     {"step": "all"}
                 ]
             },
-            "rangeslider": {"visible": True},
-            "type": "date"
+            #"rangeslider": {"visible": True},
+            #"type": "date"
         }
 
     )

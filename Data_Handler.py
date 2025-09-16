@@ -35,12 +35,13 @@ class Data_Handler:
         totals = CashFlow[CashFlow['Item'].str.startswith("Total") == True]
         calculations_dict = {}
         calculations_dict['Cash Beginning Balance'] = cash_beginning_balance
-        totals = pd.concat([totals,CashFlow[CashFlow['Item'].str.startswith("Cash Beginning Balance") == True],CashFlow[CashFlow['Item'].str.startswith("Cash Ending Balance") == True]])
+        #totals = pd.concat([totals,CashFlow[CashFlow['Item'].str.startswith("Cash Beginning Balance") == True],CashFlow[CashFlow['Item'].str.startswith("Cash Ending Balance") == True]])
         for i in range(len(totals)):
             calculations_dict[totals['Item'].iloc[i]] = totals.iloc[i, 4:].apply(pd.to_numeric, errors='coerce').sum()
         calculations_dict.pop('Total Operating Cash Outflow', None)
         calculations_dict.pop('Total Change in cash', None)
         calculations_dict['Cash Ending Balance'] = cash_ending_balance
+        totals = pd.concat([totals,CashFlow[CashFlow['Item'].str.startswith("Cash Beginning Balance") == True],CashFlow[CashFlow['Item'].str.startswith("Cash Ending Balance") == True]])
         return calculations_dict, totals
     
     def flow_classification(self):
