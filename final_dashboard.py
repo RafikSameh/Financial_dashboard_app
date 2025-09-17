@@ -551,6 +551,8 @@ class CashFlowDashboard(QMainWindow):
         self.data_handler = None
         self.plot_handler = None
         self.file_path = None
+        self.start_idx = None
+        self.end_idx = None
         self.init_ui()
         self.apply_theme()
 
@@ -1036,12 +1038,7 @@ class CashFlowDashboard(QMainWindow):
             # Update KPIs first (they're now at the top)
             self.update_kpis()
             
-            # Update charts using your plot_diagrams class
             try:
-                if hasattr(self.plot_handler, 'waterfall_cash_movement_fig'):
-                    self.waterfall_chart.display_plotly_figure(self.plot_handler.waterfall_cash_movement_fig)
-                if hasattr(self.plot_handler, 'monthly_cash_flow_fig'):
-                    self.monthly_chart.display_plotly_figure(self.plot_handler.monthly_cash_flow_fig)
                 if hasattr(self.plot_handler, 'operating_cash_flow_diagram_fig'):
                     self.operating_cash_chart.display_plotly_figure(self.plot_handler.operating_cash_flow_diagram_fig)
                     
@@ -1190,6 +1187,7 @@ class CashFlowDashboard(QMainWindow):
             print(f"Error setting up advanced KPI insights: {e}")
             self.setup_basic_kpi_display()
 
+        
     def parse_date_columns(self, date_columns):
         """Parse date columns and return valid date objects and column names"""
         date_objects = []
@@ -1295,13 +1293,14 @@ class CashFlowDashboard(QMainWindow):
 
         # Connect signal
         self.kpi_range_slider.valueChanged.connect(self.on_kpi_period_changed)
+        
 
 
     def on_kpi_period_changed(self, values):
         """Update labels when range slider is moved"""
-        start_idx, end_idx = values
-        self.kpi_start_label.setText(self.kpi_date_objects[start_idx].strftime('%Y-%m-%d'))
-        self.kpi_end_label.setText(self.kpi_date_objects[end_idx].strftime('%Y-%m-%d'))
+        self.start_idx, self.end_idx = values
+        self.kpi_start_label.setText(self.kpi_date_objects[self.start_idx].strftime('%Y-%m-%d'))
+        self.kpi_end_label.setText(self.kpi_date_objects[self.end_idx].strftime('%Y-%m-%d'))
         
         # 🔹 Call your KPI update logic here
         self.update_advanced_kpis()
@@ -1310,15 +1309,15 @@ class CashFlowDashboard(QMainWindow):
         """Update KPIs based on selected time period"""
         try:
             # ✅ Get start & end indices from RangeSlider
-            start_idx, end_idx = self.kpi_range_slider.value()
+            self.start_idx, self.end_idx = self.kpi_range_slider.value()
 
             # Ensure indices are valid
-            if start_idx > end_idx:
-                start_idx, end_idx = end_idx, start_idx
+            if self.start_idx > self.end_idx:
+                self.start_idx, self.end_idx = self.end_idx, self.start_idx
 
             # Get selected date range
-            selected_date_cols = self.kpi_date_columns[start_idx:end_idx + 1]
-            selected_dates = self.kpi_date_objects[start_idx:end_idx + 1]
+            selected_date_cols = self.kpi_date_columns[self.start_idx:self.end_idx + 1]
+            selected_dates = self.kpi_date_objects[self.start_idx:self.end_idx + 1]
 
             # Calculate KPIs for selected period
             kpi_insights = self.calculate_period_kpis(selected_date_cols, selected_dates)
@@ -1334,6 +1333,16 @@ class CashFlowDashboard(QMainWindow):
 
             # Create and display KPI widgets
             self.create_advanced_kpi_widgets(kpi_insights, len(selected_date_cols))
+            # Update charts using your plot_diagrams class
+            try: 
+                #if hasattr(self.plot_handler, 'waterfall_cash_movement_fig'):
+                    self.waterfall_chart.display_plotly_figure(self.plot_handler.waterfall_cash_movement(start_time=self.start_idx,end_time=self.end_idx))
+                #if hasattr(self.plot_handler, 'monthly_cash_flow_fig'):
+                    self.monthly_chart.display_plotly_figure(self.plot_handler.monthly_cash_flow(self.data_handler.totals,start_time=self.start_idx,end_time=self.end_idx))
+
+            except Exception as e:
+                self.statusBar().showMessage(f"Error updating charts: {str(e)}")
+
 
         except Exception as e:
             print(f"Error updating advanced KPIs: {e}")
@@ -1752,6 +1761,7 @@ class CashFlowDashboard(QMainWindow):
             self.data_loader.error_occurred.connect(self.on_error)
             self.data_loader.start()
             self.update_dashboard()
+            self.update_advanced_kpis()
             
             # Refresh the pie widget
             if hasattr(self, 'inflow_pie_widget'):
@@ -1909,12 +1919,12 @@ class CashFlowDashboard(QMainWindow):
                 chart_images = []
 
                 if hasattr(self.plot_handler, 'waterfall_cash_movement_fig'):
-                    waterfall_img = self.plotly_to_image(self.plot_handler.waterfall_cash_movement_fig)
+                    waterfall_img = self.plotly_to_image(self.plot_handler.waterfall_cash_movement(start_time=self.start_idx,end_time=self.end_idx))
                     if waterfall_img:
                         chart_images.append(("Cash Movement Waterfall Chart", waterfall_img))
 
                 if hasattr(self.plot_handler, 'monthly_cash_flow_fig'):
-                    monthly_img = self.plotly_to_image(self.plot_handler.monthly_cash_flow_fig)
+                    monthly_img = self.plotly_to_image(self.plot_handler.monthly_cash_flow(self.data_handler.totals,start_time=self.start_idx,end_time=self.end_idx))
                     if monthly_img:
                         chart_images.append(("Monthly Cash Flow Trend", monthly_img))
 

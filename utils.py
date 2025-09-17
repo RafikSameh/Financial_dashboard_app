@@ -13,7 +13,7 @@ from IPython.display import display
 from ipywidgets import VBox """
 
 
-def excel_sheet_handler():
+""" def excel_sheet_handler():
     CashFlow = pd.read_excel("Cash flow Forecasting. Yomn - RS.xlsx",sheet_name="Cash Flow - User Input")
     CashFlow.drop(axis=0,labels=[0,1],inplace=True)
     CashFlow.drop(axis=1,labels=["Unnamed: 0"],inplace=True)
@@ -33,13 +33,13 @@ def total_calculations(CashFlow):
     dict.pop('Total Operating Cash Outflow', None)
     dict.pop('Total Change in cash', None)
     dict['Cash Ending Balance'] = cash_ending_balance
-    return dict,totals
+    return dict,totals """
 
 
 class plot_diagrams(Data_Handler):
     def __init__(self):
         self.DataHandler = Data_Handler("Cash flow Forecasting. Yomn - RS.xlsx")
-        self.waterfall_cash_movement_fig = self.waterfall_cash_movement(self.DataHandler.calculations_dict)
+        self.waterfall_cash_movement_fig = self.waterfall_cash_movement()
         self.monthly_cash_flow_fig = self.monthly_cash_flow(self.DataHandler.totals)
         self.operating_cash_flow_diagram_fig = self.operating_cash_flow_diagram(self.DataHandler.Cash_Flow_Forecast_Both,
                                                                                 self.DataHandler.Cash_Flow_Forecast_KSA,
@@ -47,12 +47,13 @@ class plot_diagrams(Data_Handler):
         #self.create_pie_and_bar_with_interactive_slider_fig = self.create_pie_and_bar_with_interactive_slider(self.DataHandler.operating_cf_in[:len(self.DataHandler.operating_cf_in)])
         
 
-    def waterfall_cash_movement(self,dict):
+    def waterfall_cash_movement(self,start_time=0,end_time=5):
+        dict_calc,totals = self.DataHandler.total_calculations(self.DataHandler.CashFlow,start_time,end_time)
         fig = go.Figure(
             data=[
                 Waterfall(
-                    x=list(dict.keys()),
-                    y=list(dict.values()),
+                    x=list(dict_calc.keys()),
+                    y=list(dict_calc.values()),
                     connector={"line": {"color": "rgb(63, 63, 63)"}},
                     increasing={"marker": {"color": "#28a745"}},
                     decreasing={"marker": {"color": "#dc3545"}},
@@ -69,9 +70,9 @@ class plot_diagrams(Data_Handler):
         )
         return fig
 
-    def monthly_cash_flow(self,totals):
+    def monthly_cash_flow(self,totals,start_time=0,end_time=9):
         # Extract month columns (assuming columns 4 onward are months)
-        months = totals.columns[4:]
+        months = totals.columns[4+int(start_time):4+int(end_time)+1]
         categories = ['Total Operating Cash Inflow', 'Total Operating Cash Outflow', 'Total Investing Cash Outflow', 'Total Cash outflow from Financing']
 
         # Prepare data for each category using only the 'totals' DataFrame
@@ -81,7 +82,7 @@ class plot_diagrams(Data_Handler):
             # Find the row in totals where the category name appears in the 'Item' column
             row = totals[totals['Item'].str.contains(cat, case=False, na=False)]
             if not row.empty:
-                y = row.iloc[0, 4:].apply(pd.to_numeric, errors='coerce')
+                y = row.iloc[0, 4+int(start_time):4+int(end_time)+1].apply(pd.to_numeric, errors='coerce')
                 bar = go.Bar(
                     name=cat,
                     x=months,
@@ -94,7 +95,7 @@ class plot_diagrams(Data_Handler):
         # Add ending cash balance as a line
         ending_balance_row = self.DataHandler.CashFlow[self.DataHandler.CashFlow['Item'].str.strip() == 'Cash Ending Balance']
         if not ending_balance_row.empty:
-            ending_balance = ending_balance_row.iloc[0, 4:].apply(pd.to_numeric, errors='coerce') / 1000
+            ending_balance = ending_balance_row.iloc[0, 4+int(start_time):4+int(end_time)+1].apply(pd.to_numeric, errors='coerce') / 1000
             line = go.Scatter(
                 name='Ending Cash Balance',
                 x=months,
@@ -115,7 +116,7 @@ class plot_diagrams(Data_Handler):
                     "y": val if val >= 0 else 0,  # Place label above zero for negative values
                     "text": f'{val:,.0f}',
                     "showarrow": False,
-                    "font": {"color": color, "size": 14},
+                    "font": {"color": color, "size": 12},
                     "yanchor": 'bottom' if val >= 0 else 'top'
                 }
             )
@@ -130,7 +131,7 @@ class plot_diagrams(Data_Handler):
             annotations=annotations,
             legend={
                 "orientation":"h",   # Horizontal legend
-                "y":-0.2,            # Position below the plot
+                "y":-0.3,            # Position below the plot
                 "x":0,
                 "xanchor":'left',
                 "yanchor":'top'

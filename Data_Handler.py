@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import plotly.io as pio
+import consts
 
 
 class Data_Handler:
@@ -19,7 +20,7 @@ class Data_Handler:
         self.Cash_Flow_Forecast_Both = None
         self.cashflow_forecast_handler()
         self.operating_cf_in = self.cash_inflow_handler()
-        self.calculations_dict, self.totals = self.total_calculations(self.CashFlow)
+       #self.calculations_dict, self.totals = self.total_calculations(self.CashFlow)
 
     def excel_sheet_handler(self):
         CashFlow = pd.read_excel(self.file_path, sheet_name="Cash Flow - User Input")
@@ -29,15 +30,15 @@ class Data_Handler:
         CashFlow.drop(axis=0, labels=[2], inplace=True)
         return CashFlow
 
-    def total_calculations(self, CashFlow):
-        cash_beginning_balance = CashFlow[CashFlow['Item'].str.strip() == 'Cash Beginning Balance'].iloc[:, 4:5].values[0][0]
-        cash_ending_balance = CashFlow[CashFlow['Item'].str.strip() == 'Cash Ending Balance'].iloc[:, -1].values[0]
+    def total_calculations(self, CashFlow,start_time=0,end_time=9):
+        cash_beginning_balance = CashFlow[CashFlow['Item'].str.strip() == 'Cash Beginning Balance'].iloc[:, 4+int(start_time):].values[0][0]
+        cash_ending_balance = CashFlow[CashFlow['Item'].str.strip() == 'Cash Ending Balance'].iloc[:, 4+int(end_time)].values[0]
         totals = CashFlow[CashFlow['Item'].str.startswith("Total") == True]
         calculations_dict = {}
         calculations_dict['Cash Beginning Balance'] = cash_beginning_balance
         #totals = pd.concat([totals,CashFlow[CashFlow['Item'].str.startswith("Cash Beginning Balance") == True],CashFlow[CashFlow['Item'].str.startswith("Cash Ending Balance") == True]])
         for i in range(len(totals)):
-            calculations_dict[totals['Item'].iloc[i]] = totals.iloc[i, 4:].apply(pd.to_numeric, errors='coerce').sum()
+            calculations_dict[totals['Item'].iloc[i]] = totals.iloc[i, 4+int(start_time):4+int(end_time)+1].apply(pd.to_numeric, errors='coerce').sum()
         calculations_dict.pop('Total Operating Cash Outflow', None)
         calculations_dict.pop('Total Change in cash', None)
         calculations_dict['Cash Ending Balance'] = cash_ending_balance
